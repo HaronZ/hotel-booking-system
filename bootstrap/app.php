@@ -14,6 +14,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Render (and most PaaS hosts) terminate TLS at their edge and forward
+        // plain HTTP to the container, so without this Laravel thinks every
+        // request is HTTP and generates http:// asset/URL links on an https://
+        // page - browsers then silently block them as mixed content. The
+        // container is only reachable through Render's proxy, so trusting all
+        // proxies here is safe.
+        $middleware->trustProxies(at: '*');
+
         $middleware->api(prepend: [
             ForceJsonResponse::class,
         ]);
