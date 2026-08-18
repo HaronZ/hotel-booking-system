@@ -11,7 +11,7 @@
             if (stored) document.documentElement.setAttribute('data-theme', stored);
         })();
     </script>
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
 </head>
 <body>
 
@@ -329,6 +329,6 @@
 
     <div id="toast-container"></div>
 
-    <script src="{{ asset('js/app.js') }}"></script>
+    <script src="{{ asset('js/app.js') }}?v={{ filemtime(public_path('js/app.js')) }}"></script>
 </body>
 </html>

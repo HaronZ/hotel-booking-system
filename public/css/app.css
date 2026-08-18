@@ -308,6 +308,13 @@ input[type="number"]::-webkit-inner-spin-button {
 .stepper-btn:hover { background: var(--accent-soft); color: var(--accent-text); }
 .stepper-btn:active { background: var(--accent); color: #fff; }
 
+.stepper-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: var(--paper);
+    color: var(--ink);
+}
+
 .stepper input[type="number"] {
     flex: 1;
     min-width: 0;

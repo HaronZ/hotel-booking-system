@@ -508,7 +508,9 @@ async function loadRoomTypeFilter() {
     // a guest can step up to an arbitrary number and get an unexplained
     // "no rooms match" instead of a clear reason why.
     const maxCapacity = Math.max(1, ...data.data.map((rt) => rt.capacity));
-    document.getElementById('f-guests').max = maxCapacity;
+    const guestsInput = document.getElementById('f-guests');
+    guestsInput.max = maxCapacity;
+    updateStepperButtonStates(guestsInput.closest('.stepper'));
 }
 
 /* ============================== BOOKING MODAL ============================== */
@@ -528,8 +530,10 @@ function openBookingModal(room) {
         `${room.room_type.name} — ${formatMoney(room.room_type.base_price)}/night, up to ${room.room_type.capacity} guests`;
     setDateValue(bkCheckIn, lastSearchParams.checkIn || '');
     setDateValue(bkCheckOut, lastSearchParams.checkOut || '');
-    document.getElementById('bk-guests').value = lastSearchParams.guests || 1;
-    document.getElementById('bk-guests').max = room.room_type.capacity;
+    const bkGuests = document.getElementById('bk-guests');
+    bkGuests.value = lastSearchParams.guests || 1;
+    bkGuests.max = room.room_type.capacity;
+    updateStepperButtonStates(bkGuests.closest('.stepper'));
     document.getElementById('booking-feedback').textContent = '';
     document.getElementById('bk-requests').value = '';
     updateCharCount(document.getElementById('bk-requests'), document.getElementById('bk-requests-count'));
@@ -774,6 +778,16 @@ function appendChatMessage(text, from) {
 
 /* ============================== STEPPER (guest count) ============================== */
 
+function updateStepperButtonStates(container) {
+    const input = container.querySelector('input[type="number"]');
+    const value = Number(input.value) || 0;
+    const min = input.min !== '' ? Number(input.min) : -Infinity;
+    const max = input.max !== '' ? Number(input.max) : Infinity;
+    container.querySelectorAll('[data-step]').forEach((btn) => {
+        btn.disabled = Number(btn.dataset.step) < 0 ? value <= min : value >= max;
+    });
+}
+
 function wireStepper(container) {
     const input = container.querySelector('input[type="number"]');
     container.querySelectorAll('[data-step]').forEach((btn) => {
@@ -782,8 +796,10 @@ function wireStepper(container) {
             const min = input.min !== '' ? Number(input.min) : -Infinity;
             const max = input.max !== '' ? Number(input.max) : Infinity;
             input.value = Math.min(max, Math.max(min, (Number(input.value) || 0) + step));
+            updateStepperButtonStates(container);
         });
     });
+    updateStepperButtonStates(container);
 }
 
 document.querySelectorAll('.stepper').forEach(wireStepper);
