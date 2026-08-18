@@ -475,9 +475,9 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 .password-toggle:hover { color: var(--ink); background: var(--paper); }
 
-.password-toggle .icon-eye-off { display: none; }
-.password-toggle.is-visible .icon-eye { display: none; }
-.password-toggle.is-visible .icon-eye-off { display: block; }
+.password-toggle .icon-eye { display: none; }
+.password-toggle.is-visible .icon-eye { display: block; }
+.password-toggle.is-visible .icon-eye-off { display: none; }
 
 .hint { font-size: 0.8rem; color: var(--ink-soft); margin-top: 0.75rem; text-align: center; }
 .hint code { background: var(--paper); border-radius: 4px; padding: 0.05rem 0.3rem; }
