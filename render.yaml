@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: hotel-booking-api
+    runtime: docker
+    plan: free
+    branch: main
+    healthCheckPath: /up
+    envVars:
+      - key: APP_NAME
+        value: "CertiCode Hotel"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: MYSQL_ATTR_SSL_CA
+        value: /app/certs/aiven-ca.pem
+      - key: JWT_SECRET
+        sync: false
+      - key: MAIL_MAILER
+        value: resend
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM_ADDRESS
+        value: reservations@rallys.com.au
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: nvidia/nemotron-3-ultra-550b-a55b:free
