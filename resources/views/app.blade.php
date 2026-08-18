@@ -102,7 +102,6 @@
                         @include('partials.password-field', ['id' => 'login-password'])
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">Log in</button>
-                    <p class="hint">Demo accounts: admin@hotel.test / guest@hotel.test &mdash; password: <code>password</code></p>
                 </form>
 
                 <form id="register-form" class="tab-panel">
