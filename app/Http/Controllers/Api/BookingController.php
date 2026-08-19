@@ -21,7 +21,7 @@ class BookingController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $query = Booking::query()->with(['room.roomType', 'user:id,name,email']);
+        $query = Booking::query()->with(['room.roomType', 'user:id,name,email', 'statusChangedBy:id,name,role']);
 
         if (! $user->isAdmin()) {
             $query->where('user_id', $user->id);
@@ -78,6 +78,7 @@ class BookingController extends Controller
             'check_out' => $data['check_out'],
             'guests' => $data['guests'],
             'status' => 'pending',
+            'status_changed_by' => $request->user()->id,
             'total_price' => $nights * $room->roomType->base_price,
             'special_requests' => $data['special_requests'] ?? null,
         ]);
@@ -100,12 +101,13 @@ class BookingController extends Controller
     {
         $this->authorizeAccess($request, $booking);
 
-        return response()->json($booking->load(['room.roomType', 'user:id,name,email']));
+        return response()->json($booking->load(['room.roomType', 'user:id,name,email', 'statusChangedBy:id,name,role']));
     }
 
     public function update(Request $request, Booking $booking): JsonResponse
     {
         $this->authorizeAccess($request, $booking);
+        $this->assertNotTerminal($booking);
 
         $data = $request->validate([
             'check_in' => ['sometimes', 'date', 'after_or_equal:today'],
@@ -120,6 +122,10 @@ class BookingController extends Controller
             unset($data['status']);
         }
 
+        if (isset($data['status']) && $data['status'] !== $booking->status) {
+            $data['status_changed_by'] = $request->user()->id;
+        }
+
         $checkIn = $data['check_in'] ?? $booking->check_in->toDateString();
         $checkOut = $data['check_out'] ?? $booking->check_out->toDateString();
 
@@ -132,16 +138,33 @@ class BookingController extends Controller
 
         $booking->update($data);
 
-        return response()->json($booking->fresh(['room.roomType', 'user:id,name,email']));
+        return response()->json($booking->fresh(['room.roomType', 'user:id,name,email', 'statusChangedBy:id,name,role']));
     }
 
     public function destroy(Request $request, Booking $booking): JsonResponse
     {
         $this->authorizeAccess($request, $booking);
+        $this->assertNotTerminal($booking);
 
-        $booking->update(['status' => 'cancelled']);
+        $booking->update(['status' => 'cancelled', 'status_changed_by' => $request->user()->id]);
 
         return response()->json(['message' => 'Booking cancelled.']);
+    }
+
+    /**
+     * Completed and cancelled are terminal - once a booking reaches either,
+     * nothing about it should change. This matters beyond UX: the overlap
+     * check skips cancelled bookings, so un-cancelling one after the fact
+     * could silently collide with a newer booking that assumed the room
+     * was free.
+     */
+    protected function assertNotTerminal(Booking $booking): void
+    {
+        abort_if(
+            in_array($booking->status, Booking::TERMINAL_STATUSES, true),
+            422,
+            'This booking is '.$booking->status.' and can no longer be changed.'
+        );
     }
 
     protected function authorizeAccess(Request $request, Booking $booking): void

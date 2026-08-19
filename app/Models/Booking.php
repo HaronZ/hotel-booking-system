@@ -18,9 +18,13 @@ class Booking extends Model
         'check_out',
         'guests',
         'status',
+        'status_changed_by',
         'total_price',
         'special_requests',
     ];
+
+    /** Statuses that can no longer be changed once reached. */
+    public const TERMINAL_STATUSES = ['completed', 'cancelled'];
 
     protected function casts(): array
     {
@@ -39,6 +43,11 @@ class Booking extends Model
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
+    }
+
+    public function statusChangedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'status_changed_by');
     }
 
     /**

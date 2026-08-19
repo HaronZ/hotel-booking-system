@@ -663,6 +663,13 @@ function initials(name) {
     return (name || '').trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() || '').join('');
 }
 
+// Mirrors Booking::TERMINAL_STATUSES on the backend - completed and
+// cancelled bookings can't be changed further, so the admin table shows a
+// plain badge instead of an editable dropdown for them.
+function isTerminalStatus(status) {
+    return status === 'completed' || status === 'cancelled';
+}
+
 /* ============================== ADMIN: ROOM TYPES ============================== */
 
 let currentAmenityTags = [];
@@ -880,9 +887,12 @@ async function loadAdminBookings() {
                 <td>${escapeHtml(b.room.room_number)}</td>
                 <td>${b.check_in.slice(0, 10)} &rarr; ${b.check_out.slice(0, 10)}</td>
                 <td>
-                    <select class="status-select status-${b.status}" data-booking-id="${b.id}">
-                        ${['pending', 'confirmed', 'cancelled', 'completed'].map((s) => `<option value="${s}" ${s === b.status ? 'selected' : ''}>${s}</option>`).join('')}
-                    </select>
+                    ${isTerminalStatus(b.status)
+                        ? `<span class="status-badge status-${b.status}">${b.status}</span>`
+                        : `<select class="status-select status-${b.status}" data-booking-id="${b.id}">
+                            ${['pending', 'confirmed', 'cancelled', 'completed'].map((s) => `<option value="${s}" ${s === b.status ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>`}
+                    ${b.status_changed_by ? `<div class="status-changed-by">by ${b.status_changed_by.role === 'admin' ? 'admin' : 'guest'}</div>` : ''}
                 </td>
                 <td>${formatMoney(b.total_price)}</td>
                 <td>${b.special_requests
@@ -910,6 +920,12 @@ async function updateBookingStatus(id, status) {
         toast('Booking status updated.', 'success');
     } catch (err) {
         toast(err.message, 'error');
+    } finally {
+        // Re-render either way: on success this swaps a newly-terminal row
+        // (completed/cancelled) from the editable dropdown to the locked
+        // badge immediately, instead of leaving it looking editable until
+        // the next manual refresh; on failure it resets the dropdown back
+        // to the booking's actual current status.
         loadAdminBookings();
     }
 }

@@ -818,6 +818,14 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 .status-select:hover { filter: brightness(0.96); }
 .status-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* <option> inherits color from the <select> by default, so every option in
+   the list rendered in whatever color matched the CURRENTLY selected
+   status - opening a "Cancelled" dropdown showed all four options in red.
+   Options need their own plain, readable color regardless of the select's
+   current status color. */
+.status-select option { color: var(--ink); background: var(--surface); font-weight: 600; text-transform: none; }
+
+.status-changed-by { margin-top: 0.3rem; font-size: 0.72rem; color: var(--ink-soft); }
 .data-table .requests-cell {
     display: block;
     max-width: 16rem;
