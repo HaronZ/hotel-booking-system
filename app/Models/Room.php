@@ -38,8 +38,8 @@ class Room extends Model
         return $query->where('status', 'available')
             ->whereDoesntHave('bookings', function (Builder $q) use ($checkIn, $checkOut) {
                 $q->whereIn('status', ['pending', 'confirmed'])
-                    ->where('check_in', '<', $checkOut)
-                    ->where('check_out', '>', $checkIn);
+                    ->whereDate('check_in', '<', $checkOut)
+                    ->whereDate('check_out', '>', $checkIn);
             });
     }
 }

@@ -49,7 +49,7 @@ class Booking extends Model
     {
         return $query->where('room_id', $roomId)
             ->whereIn('status', ['pending', 'confirmed'])
-            ->where('check_in', '<', $checkOut)
-            ->where('check_out', '>', $checkIn);
+            ->whereDate('check_in', '<', $checkOut)
+            ->whereDate('check_out', '>', $checkIn);
     }
 }
