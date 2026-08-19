@@ -558,6 +558,20 @@ function updateCharCount(textarea, counterEl) {
 
 /* ============================== MY BOOKINGS ============================== */
 
+function skeletonBookingRowHtml() {
+    return `
+        <div class="booking-row skeleton-card" aria-hidden="true">
+            <div class="booking-main">
+                <div class="skeleton-line-lg" style="width:55%"></div>
+                <div class="skeleton-line" style="width:35%; margin-top: 0.4rem;"></div>
+            </div>
+            <div class="booking-actions">
+                <div class="skeleton-line" style="width:4rem"></div>
+                <div class="skeleton-pill"></div>
+            </div>
+        </div>`;
+}
+
 function bookingRowHtml(b) {
     const canCancel = b.status === 'pending' || b.status === 'confirmed';
     const justBooked = b.created_at && (Date.now() - new Date(b.created_at).getTime()) < 10 * 60 * 1000;
@@ -591,7 +605,7 @@ function bookingSectionHtml(title, bookings, emptyText) {
 
 async function loadMyBookings() {
     const list = document.getElementById('bookings-list');
-    list.innerHTML = '<div class="empty-state">Loading&hellip;</div>';
+    list.innerHTML = Array.from({ length: 3 }, skeletonBookingRowHtml).join('');
     try {
         const data = await apiFetch('/bookings?per_page=50');
 
@@ -1213,8 +1227,16 @@ document.getElementById('chatbot-form').addEventListener('submit', async (e) => 
     syncHeaderHeightVar();
     appendChatMessage('Hi! Ask me about room types, prices, availability, or how to book.', 'bot');
 
-    await loadMe();
-    await loadRoomTypeFilter();
-    await searchRooms();
-    showView(currentUser && currentUser.role === 'admin' ? 'admin' : 'browse');
+    // Show the page shell (heading, search form, skeleton room cards)
+    // immediately instead of leaving the screen blank until /me,
+    // /room-types, and /rooms all finish - on a slow or cold-started
+    // backend that could otherwise be a long stretch of nothing but the
+    // header. Defaults to the guest browse view; swap to admin once
+    // loadMe() confirms that's who's signed in.
+    showView('browse');
+
+    const mePromise = loadMe();
+    await Promise.all([loadRoomTypeFilter(), searchRooms()]);
+    await mePromise;
+    if (currentUser && currentUser.role === 'admin') showView('admin');
 })();

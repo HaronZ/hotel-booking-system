@@ -685,7 +685,10 @@ input[type="number"]::-webkit-inner-spin-button {
     box-shadow: var(--shadow);
 }
 
-.booking-row .booking-main { display: flex; flex-direction: column; gap: 0.2rem; }
+/* flex: 1 gives this a definite width instead of shrink-to-fit-content -
+   without it, percentage-width children (the skeleton loading lines) can't
+   resolve against it and collapse to 0 width. */
+.booking-row .booking-main { display: flex; flex-direction: column; gap: 0.2rem; flex: 1; min-width: 0; }
 .booking-row .booking-room { font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
 .booking-row .booking-dates { color: var(--ink-soft); font-size: 0.87rem; }
 .booking-row .booking-actions { display: flex; align-items: center; gap: 0.75rem; }
