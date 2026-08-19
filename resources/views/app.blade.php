@@ -157,12 +157,14 @@
                         Add Room Type
                     </button>
                 </div>
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Name</th><th>Price/night</th><th>Capacity</th><th>Rooms</th><th></th></tr>
-                    </thead>
-                    <tbody id="admin-room-types-body"></tbody>
-                </table>
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Name</th><th>Price/night</th><th>Capacity</th><th>Rooms</th><th></th></tr>
+                        </thead>
+                        <tbody id="admin-room-types-body"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div id="admin-rooms" class="admin-panel">
@@ -176,12 +178,14 @@
                         Add Room
                     </button>
                 </div>
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Number</th><th>Type</th><th>Floor</th><th>Status</th><th></th></tr>
-                    </thead>
-                    <tbody id="admin-rooms-body"></tbody>
-                </table>
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Number</th><th>Type</th><th>Floor</th><th>Status</th><th></th></tr>
+                        </thead>
+                        <tbody id="admin-rooms-body"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div id="admin-bookings" class="admin-panel">
@@ -191,12 +195,14 @@
                         <p class="panel-toolbar-sub">Every reservation across all guests, newest check-in first.</p>
                     </div>
                 </div>
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Guest</th><th>Room</th><th>Dates</th><th>Status</th><th>Total</th><th>Special requests</th></tr>
-                    </thead>
-                    <tbody id="admin-bookings-body"></tbody>
-                </table>
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Guest</th><th>Room</th><th>Dates</th><th>Status</th><th>Total</th><th>Special requests</th></tr>
+                        </thead>
+                        <tbody id="admin-bookings-body"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -264,8 +270,11 @@
                     </div>
                 </div>
                 <div class="field">
-                    <label for="rt-amenities">Amenities (comma-separated)</label>
-                    <input type="text" id="rt-amenities" placeholder="Wi-Fi, Mini Bar, City View">
+                    <label for="rt-amenities-input">Amenities</label>
+                    <div class="tag-input" id="rt-amenities-tags">
+                        <input type="text" id="rt-amenities-input" placeholder="Type an amenity and press Enter&hellip;" autocomplete="off">
+                    </div>
+                    <div class="tag-input-suggestions hidden" id="rt-amenities-suggestions"></div>
                 </div>
                 <div id="room-type-feedback" class="feedback"></div>
                 <button type="submit" class="btn btn-primary btn-block">Save Room Type</button>

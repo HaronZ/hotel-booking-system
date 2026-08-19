@@ -60,8 +60,17 @@ function toast(message, type = 'info') {
     setTimeout(() => el.remove(), 4000);
 }
 
-function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+let openModalCount = 0;
+function openModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+    openModalCount += 1;
+    document.body.classList.add('modal-open');
+}
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+    openModalCount = Math.max(0, openModalCount - 1);
+    if (openModalCount === 0) document.body.classList.remove('modal-open');
+}
 
 /**
  * Disables a submit button and swaps its label while an async action runs,
@@ -642,11 +651,85 @@ function initials(name) {
 
 /* ============================== ADMIN: ROOM TYPES ============================== */
 
+let currentAmenityTags = [];
+let knownAmenities = [];
+
+function renderAmenityTags() {
+    const container = document.getElementById('rt-amenities-tags');
+    const input = document.getElementById('rt-amenities-input');
+    container.querySelectorAll('.tag-pill').forEach((el) => el.remove());
+    currentAmenityTags.forEach((tag, index) => {
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill';
+        pill.innerHTML = `${escapeHtml(tag)} <button type="button" aria-label="Remove ${escapeHtml(tag)}">&times;</button>`;
+        pill.querySelector('button').addEventListener('click', () => removeAmenityTag(index));
+        container.insertBefore(pill, input);
+    });
+}
+
+function addAmenityTag(raw) {
+    const value = raw.trim();
+    if (!value) return;
+    const exists = currentAmenityTags.some((t) => t.toLowerCase() === value.toLowerCase());
+    if (!exists) currentAmenityTags.push(value);
+    document.getElementById('rt-amenities-input').value = '';
+    hideAmenitySuggestions();
+    renderAmenityTags();
+}
+
+function removeAmenityTag(index) {
+    currentAmenityTags.splice(index, 1);
+    renderAmenityTags();
+}
+
+function hideAmenitySuggestions() {
+    const box = document.getElementById('rt-amenities-suggestions');
+    box.classList.add('hidden');
+    box.innerHTML = '';
+}
+
+function showAmenitySuggestions(query) {
+    const box = document.getElementById('rt-amenities-suggestions');
+    const q = query.trim().toLowerCase();
+    const used = new Set(currentAmenityTags.map((t) => t.toLowerCase()));
+    const matches = knownAmenities
+        .filter((a) => !used.has(a.toLowerCase()))
+        .filter((a) => !q || a.toLowerCase().includes(q))
+        .slice(0, 6);
+    if (matches.length === 0) return hideAmenitySuggestions();
+    box.innerHTML = matches.map((a) => `<button type="button" class="tag-suggestion">${escapeHtml(a)}</button>`).join('');
+    box.querySelectorAll('.tag-suggestion').forEach((btn) => {
+        btn.addEventListener('click', () => addAmenityTag(btn.textContent));
+    });
+    box.classList.remove('hidden');
+}
+
+function initAmenityTagInput() {
+    const input = document.getElementById('rt-amenities-input');
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addAmenityTag(input.value);
+        } else if (e.key === 'Backspace' && !input.value && currentAmenityTags.length) {
+            removeAmenityTag(currentAmenityTags.length - 1);
+        }
+    });
+    input.addEventListener('input', () => showAmenitySuggestions(input.value));
+    input.addEventListener('focus', () => showAmenitySuggestions(input.value));
+    input.addEventListener('blur', () => setTimeout(hideAmenitySuggestions, 150));
+}
+initAmenityTagInput();
+
 async function loadAdminRoomTypes() {
     const tbody = document.getElementById('admin-room-types-body');
     tbody.innerHTML = '<tr><td colspan="5">Loading&hellip;</td></tr>';
     try {
         const data = await apiFetch('/room-types?per_page=50');
+        const seen = new Set();
+        knownAmenities = [];
+        data.data.forEach((rt) => (rt.amenities || []).forEach((a) => {
+            if (!seen.has(a.toLowerCase())) { seen.add(a.toLowerCase()); knownAmenities.push(a); }
+        }));
         tbody.innerHTML = data.data.map((rt) => `
             <tr>
                 <td>${escapeHtml(rt.name)}</td>
@@ -679,7 +762,10 @@ function openRoomTypeModal(rt = null) {
     document.getElementById('rt-description').value = rt?.description || '';
     document.getElementById('rt-price').value = rt?.base_price || '';
     document.getElementById('rt-capacity').value = rt?.capacity || '';
-    document.getElementById('rt-amenities').value = (rt?.amenities || []).join(', ');
+    currentAmenityTags = [...(rt?.amenities || [])];
+    document.getElementById('rt-amenities-input').value = '';
+    renderAmenityTags();
+    hideAmenitySuggestions();
     document.getElementById('room-type-feedback').textContent = '';
     openModal('room-type-modal');
 }
@@ -885,7 +971,7 @@ function confirmDialog({ title = 'Are you sure?', body = '', confirmText = 'Dele
         confirmBtn.className = `btn ${danger ? 'btn-danger' : 'btn-primary'}`;
 
         function settle(result) {
-            modal.classList.add('hidden');
+            closeModal('confirm-modal');
             confirmBtn.removeEventListener('click', onConfirm);
             cancelBtn.removeEventListener('click', onCancel);
             modal.removeEventListener('click', onBackdrop);
@@ -901,7 +987,7 @@ function confirmDialog({ title = 'Are you sure?', body = '', confirmText = 'Dele
         cancelBtn.addEventListener('click', onCancel);
         modal.addEventListener('click', onBackdrop);
         document.addEventListener('keydown', onKeydown);
-        modal.classList.remove('hidden');
+        openModal('confirm-modal');
     });
 }
 
@@ -1042,12 +1128,14 @@ document.getElementById('room-type-form').addEventListener('submit', async (e) =
     e.preventDefault();
     const feedback = document.getElementById('room-type-feedback');
     const id = document.getElementById('rt-id').value;
+    const pendingTag = document.getElementById('rt-amenities-input').value.trim();
+    if (pendingTag) addAmenityTag(pendingTag);
     const body = {
         name: document.getElementById('rt-name').value,
         description: document.getElementById('rt-description').value || null,
         base_price: Number(document.getElementById('rt-price').value),
         capacity: Number(document.getElementById('rt-capacity').value),
-        amenities: document.getElementById('rt-amenities').value.split(',').map((s) => s.trim()).filter(Boolean),
+        amenities: currentAmenityTags,
     };
     const submitBtn = e.target.querySelector('button[type="submit"]');
     setButtonLoading(submitBtn, true, 'Saving…');
