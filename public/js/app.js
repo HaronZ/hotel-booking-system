@@ -551,10 +551,14 @@ function updateCharCount(textarea, counterEl) {
 
 function bookingRowHtml(b) {
     const canCancel = b.status === 'pending' || b.status === 'confirmed';
+    const justBooked = b.created_at && (Date.now() - new Date(b.created_at).getTime()) < 10 * 60 * 1000;
     return `
         <div class="booking-row">
             <div class="booking-main">
-                <div class="booking-room">${escapeHtml(b.room.room_type.name)} &middot; Room ${escapeHtml(b.room.room_number)}</div>
+                <div class="booking-room">
+                    ${escapeHtml(b.room.room_type.name)} &middot; Room ${escapeHtml(b.room.room_number)}
+                    ${justBooked ? '<span class="badge-new">Just booked</span>' : ''}
+                </div>
                 <div class="booking-dates">${b.check_in.slice(0, 10)} &rarr; ${b.check_out.slice(0, 10)} &middot; ${b.guests} guest(s)</div>
             </div>
             <div class="booking-actions">
@@ -562,6 +566,17 @@ function bookingRowHtml(b) {
                 <span class="status-badge status-${b.status}">${b.status}</span>
                 ${canCancel ? `<button class="btn btn-danger btn-small" data-cancel-booking="${b.id}">Cancel</button>` : ''}
             </div>
+        </div>`;
+}
+
+function bookingSectionHtml(title, bookings, emptyText) {
+    const body = bookings.length
+        ? `<div class="stack">${bookings.map(bookingRowHtml).join('')}</div>`
+        : `<div class="empty-state">${escapeHtml(emptyText)}</div>`;
+    return `
+        <div class="booking-section">
+            <h2 class="booking-section-title">${escapeHtml(title)} <span class="booking-section-count">${bookings.length}</span></h2>
+            ${body}
         </div>`;
 }
 
@@ -579,7 +594,21 @@ async function loadMyBookings() {
             list.innerHTML = '<div class="empty-state">No bookings yet — search for a room to get started.</div>';
             return;
         }
-        list.innerHTML = data.data.map(bookingRowHtml).join('');
+
+        const today = todayISO();
+        const upcoming = [];
+        const past = [];
+        data.data.forEach((b) => {
+            (b.status !== 'cancelled' && b.check_out.slice(0, 10) >= today ? upcoming : past).push(b);
+        });
+        // Soonest stay first for what's ahead of you; most recent first for history.
+        upcoming.sort((a, b) => a.check_in.localeCompare(b.check_in));
+        past.sort((a, b) => b.check_in.localeCompare(a.check_in));
+
+        list.innerHTML = [
+            bookingSectionHtml('Upcoming', upcoming, 'No upcoming bookings — search for a room to get started.'),
+            past.length ? bookingSectionHtml('Past & cancelled', past, '') : '',
+        ].join('');
         list.querySelectorAll('[data-cancel-booking]').forEach((btn) => {
             btn.addEventListener('click', () => cancelBooking(btn.dataset.cancelBooking));
         });
@@ -604,6 +633,13 @@ async function cancelBooking(id) {
     }
 }
 
+const ICON_EDIT = '<svg class="btn-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M13.5 3.5l3 3L6 17H3v-3L13.5 3.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+const ICON_DELETE = '<svg class="btn-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2m-7 0 .6 10a1 1 0 0 0 1 1h6.8a1 1 0 0 0 1-1L15 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function initials(name) {
+    return (name || '').trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() || '').join('');
+}
+
 /* ============================== ADMIN: ROOM TYPES ============================== */
 
 async function loadAdminRoomTypes() {
@@ -618,8 +654,8 @@ async function loadAdminRoomTypes() {
                 <td>${rt.capacity}</td>
                 <td>${rt.rooms_count ?? '—'}</td>
                 <td class="row-actions">
-                    <button class="btn btn-ghost btn-small" data-edit-room-type='${JSON.stringify(rt).replace(/'/g, '&apos;')}'>Edit</button>
-                    <button class="btn btn-danger btn-small" data-delete-room-type="${rt.id}">Delete</button>
+                    <button class="btn btn-ghost btn-small" data-edit-room-type='${JSON.stringify(rt).replace(/'/g, '&apos;')}'>${ICON_EDIT} Edit</button>
+                    <button class="btn btn-danger btn-small" data-delete-room-type="${rt.id}">${ICON_DELETE} Delete</button>
                 </td>
             </tr>`).join('');
 
@@ -684,8 +720,8 @@ async function loadAdminRooms() {
                 <td>${room.floor ?? '—'}</td>
                 <td><span class="status-badge status-${room.status}">${room.status}</span></td>
                 <td class="row-actions">
-                    <button class="btn btn-ghost btn-small" data-edit-room='${JSON.stringify(room).replace(/'/g, '&apos;')}'>Edit</button>
-                    <button class="btn btn-danger btn-small" data-delete-room="${room.id}">Delete</button>
+                    <button class="btn btn-ghost btn-small" data-edit-room='${JSON.stringify(room).replace(/'/g, '&apos;')}'>${ICON_EDIT} Edit</button>
+                    <button class="btn btn-danger btn-small" data-delete-room="${room.id}">${ICON_DELETE} Delete</button>
                 </td>
             </tr>`).join('');
 
@@ -735,20 +771,33 @@ async function loadAdminBookings() {
         const data = await apiFetch('/bookings?per_page=50');
         tbody.innerHTML = data.data.map((b) => `
             <tr>
-                <td>${escapeHtml(b.user.name)}</td>
+                <td>
+                    <div class="guest-cell">
+                        <span class="avatar" aria-hidden="true">${escapeHtml(initials(b.user.name))}</span>
+                        ${escapeHtml(b.user.name)}
+                    </div>
+                </td>
                 <td>${escapeHtml(b.room.room_number)}</td>
                 <td>${b.check_in.slice(0, 10)} &rarr; ${b.check_out.slice(0, 10)}</td>
                 <td>
-                    <select class="status-select" data-booking-id="${b.id}">
+                    <select class="status-select status-${b.status}" data-booking-id="${b.id}">
                         ${['pending', 'confirmed', 'cancelled', 'completed'].map((s) => `<option value="${s}" ${s === b.status ? 'selected' : ''}>${s}</option>`).join('')}
                     </select>
                 </td>
                 <td>${formatMoney(b.total_price)}</td>
-                <td></td>
+                <td>${b.special_requests
+                    ? `<button type="button" class="requests-cell" data-requests-toggle>${escapeHtml(b.special_requests)}</button>`
+                    : '<span style="color: var(--ink-soft);">&mdash;</span>'}</td>
             </tr>`).join('');
 
         tbody.querySelectorAll('.status-select').forEach((sel) => {
-            sel.addEventListener('change', () => updateBookingStatus(sel.dataset.bookingId, sel.value));
+            sel.addEventListener('change', () => {
+                sel.className = `status-select status-${sel.value}`;
+                updateBookingStatus(sel.dataset.bookingId, sel.value);
+            });
+        });
+        tbody.querySelectorAll('[data-requests-toggle]').forEach((cell) => {
+            cell.addEventListener('click', () => cell.classList.toggle('expanded'));
         });
     } catch (err) {
         tbody.innerHTML = `<tr><td colspan="6">${escapeHtml(err.message)}</td></tr>`;

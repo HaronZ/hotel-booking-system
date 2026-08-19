@@ -147,7 +147,16 @@
             </div>
 
             <div id="admin-room-types" class="admin-panel active">
-                <button class="btn btn-primary" id="add-room-type-btn">+ Add Room Type</button>
+                <div class="panel-toolbar">
+                    <div>
+                        <h2 class="panel-toolbar-title">Room Types</h2>
+                        <p class="panel-toolbar-sub">The categories guests choose from when they search.</p>
+                    </div>
+                    <button class="btn btn-primary" id="add-room-type-btn">
+                        <svg class="btn-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        Add Room Type
+                    </button>
+                </div>
                 <table class="data-table">
                     <thead>
                         <tr><th>Name</th><th>Price/night</th><th>Capacity</th><th>Rooms</th><th></th></tr>
@@ -157,7 +166,16 @@
             </div>
 
             <div id="admin-rooms" class="admin-panel">
-                <button class="btn btn-primary" id="add-room-btn">+ Add Room</button>
+                <div class="panel-toolbar">
+                    <div>
+                        <h2 class="panel-toolbar-title">Rooms</h2>
+                        <p class="panel-toolbar-sub">Every physical room, and which room type it belongs to.</p>
+                    </div>
+                    <button class="btn btn-primary" id="add-room-btn">
+                        <svg class="btn-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        Add Room
+                    </button>
+                </div>
                 <table class="data-table">
                     <thead>
                         <tr><th>Number</th><th>Type</th><th>Floor</th><th>Status</th><th></th></tr>
@@ -167,9 +185,15 @@
             </div>
 
             <div id="admin-bookings" class="admin-panel">
+                <div class="panel-toolbar">
+                    <div>
+                        <h2 class="panel-toolbar-title">All Bookings</h2>
+                        <p class="panel-toolbar-sub">Every reservation across all guests, newest check-in first.</p>
+                    </div>
+                </div>
                 <table class="data-table">
                     <thead>
-                        <tr><th>Guest</th><th>Room</th><th>Dates</th><th>Status</th><th>Total</th><th></th></tr>
+                        <tr><th>Guest</th><th>Room</th><th>Dates</th><th>Status</th><th>Total</th><th>Special requests</th></tr>
                     </thead>
                     <tbody id="admin-bookings-body"></tbody>
                 </table>

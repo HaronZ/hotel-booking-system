@@ -172,6 +172,9 @@ body {
 
 /* ---------- buttons ---------- */
 .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     font: inherit;
     font-weight: 600;
     font-size: 0.92rem;
@@ -181,6 +184,8 @@ body {
     cursor: pointer;
     transition: background 0.12s ease, border-color 0.12s ease, transform 0.05s ease;
 }
+
+.btn-icon { width: 1em; height: 1em; flex-shrink: 0; }
 
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
@@ -590,10 +595,40 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .booking-row .booking-main { display: flex; flex-direction: column; gap: 0.2rem; }
-.booking-row .booking-room { font-weight: 700; }
+.booking-row .booking-room { font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
 .booking-row .booking-dates { color: var(--ink-soft); font-size: 0.87rem; }
 .booking-row .booking-actions { display: flex; align-items: center; gap: 0.75rem; }
 .booking-row .booking-price { font-weight: 700; }
+
+.booking-section + .booking-section { margin-top: 1.75rem; }
+.booking-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin: 0 0 0.75rem;
+}
+.booking-section-count {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.05rem 0.55rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+.badge-new {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+}
 
 .status-badge {
     font-size: 0.72rem;
@@ -615,6 +650,16 @@ input[type="number"]::-webkit-inner-spin-button {
 .admin-panel { display: none; margin-top: 1.25rem; }
 .admin-panel.active { display: block; }
 
+.panel-toolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.panel-toolbar-title { margin: 0; font-size: 1.15rem; }
+.panel-toolbar-sub { margin: 0.15rem 0 0; color: var(--ink-soft); font-size: 0.87rem; }
+
 .data-table {
     width: 100%;
     border-collapse: collapse;
@@ -635,7 +680,67 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .data-table th { background: var(--paper); color: var(--ink-soft); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; }
 .data-table tr:last-child td { border-bottom: none; }
+.data-table tbody tr { transition: background-color 0.12s ease; }
+.data-table tbody tr:hover { background-color: var(--paper); }
 .data-table .row-actions { display: flex; gap: 0.5rem; }
+
+.guest-cell { display: flex; align-items: center; gap: 0.6rem; }
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.status-select {
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.3rem 1.7rem 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5.5 8l4.5 4.5L14.5 8' stroke='%235b6773' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    background-size: 0.85em;
+    transition: filter 0.12s ease;
+}
+.status-select:hover { filter: brightness(0.96); }
+.status-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.data-table .requests-cell {
+    display: block;
+    max-width: 16rem;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px dotted var(--ink-soft);
+}
+.data-table .requests-cell.expanded {
+    max-width: 24rem;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    border-bottom: none;
+}
 
 /* ---------- modal ---------- */
 .modal-overlay {
