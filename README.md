@@ -46,7 +46,7 @@ A full-stack hotel room booking system built with Laravel: a JWT-secured REST AP
 
 ```bash
 git clone <this-repo>
-cd hotel-booking-api
+cd hotel-booking-system
 composer install
 
 cp .env.example .env
