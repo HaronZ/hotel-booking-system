@@ -226,10 +226,11 @@ body.modal-open { overflow: hidden; }
 }
 
 .theme-switch-icon {
-    font-size: 0.8rem;
-    line-height: 1;
+    width: 0.95rem;
+    height: 0.95rem;
     position: relative;
     z-index: 1;
+    color: var(--ink-soft);
 }
 
 .theme-switch-thumb {
@@ -620,6 +621,11 @@ input[type="number"]::-webkit-inner-spin-button {
 .room-card .room-price { font-size: 1.3rem; font-weight: 700; margin-top: 0.25rem; }
 .room-card .room-price span { font-size: 0.8rem; font-weight: 500; color: var(--ink-soft); }
 .room-card .amenities { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+
+/* Push the button to the card's bottom edge regardless of how many
+   amenity pills wrap above it, so "Book this room" lines up across a
+   row instead of trailing whatever content happens to be shortest. */
+.room-card button[data-book-room] { margin-top: auto; }
 
 .pill {
     display: inline-block;

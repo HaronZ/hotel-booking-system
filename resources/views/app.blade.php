@@ -30,9 +30,14 @@
 
             <div class="auth-area">
                 <button type="button" class="theme-switch" id="theme-toggle" role="switch" aria-checked="false" aria-label="Dark mode">
-                    <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+                    <svg class="theme-switch-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
                     <span class="theme-switch-thumb"></span>
-                    <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+                    <svg class="theme-switch-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </button>
                 <span class="user-chip guest-only">
                     <button class="btn btn-ghost" data-nav="auth" data-tab="login">Log in</button>

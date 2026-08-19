@@ -25,6 +25,47 @@ class AuthAndAccessTest extends TestCase
         $this->assertSame('customer', $response->json('user.role'));
     }
 
+    public function test_registration_rejects_a_duplicate_email(): void
+    {
+        User::factory()->create(['email' => 'jane@example.com']);
+
+        $response = $this->postJson('/api/register', [
+            'name' => 'Jane Guest',
+            'email' => 'jane@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('email');
+    }
+
+    public function test_registration_rejects_a_mismatched_password_confirmation(): void
+    {
+        $response = $this->postJson('/api/register', [
+            'name' => 'Jane Guest',
+            'email' => 'jane@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'somethingelse',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('password');
+    }
+
+    public function test_registration_rejects_a_password_under_eight_characters(): void
+    {
+        $response = $this->postJson('/api/register', [
+            'name' => 'Jane Guest',
+            'email' => 'jane@example.com',
+            'password' => 'short1',
+            'password_confirmation' => 'short1',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('password');
+    }
+
     public function test_login_fails_with_wrong_password(): void
     {
         User::factory()->create([
