@@ -24,6 +24,17 @@ class RoomController extends Controller
 
         $query = Room::query()->with('roomType');
 
+        // This endpoint is public (used by the guest browse page) but also
+        // reused by the admin Rooms tab. Guests should never see rooms
+        // taken out of service, even before they've picked dates - but
+        // admins need the full inventory to manage it. auth('api')->user()
+        // resolves the token if present without requiring auth middleware
+        // on this route.
+        $user = auth('api')->user();
+        if (! $request->filled('status') && (! $user || ! $user->isAdmin())) {
+            $query->where('status', 'available');
+        }
+
         if ($request->filled('room_type_id')) {
             $query->where('room_type_id', $request->query('room_type_id'));
         }
