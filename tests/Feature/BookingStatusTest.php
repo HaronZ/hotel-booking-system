@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\User;
+use App\Notifications\BookingStatusUpdatedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class BookingStatusTest extends TestCase
@@ -96,5 +98,29 @@ class BookingStatusTest extends TestCase
         $response = $this->actingAs($customer, 'api')->deleteJson("/api/bookings/{$booking['id']}");
 
         $response->assertStatus(422);
+    }
+
+    public function test_admin_confirming_a_booking_notifies_the_guest(): void
+    {
+        Notification::fake();
+        ['booking' => $booking, 'customer' => $customer, 'admin' => $admin] = $this->makeBooking();
+
+        $this->actingAs($admin, 'api')->putJson("/api/bookings/{$booking['id']}", ['status' => 'confirmed'])->assertOk();
+
+        Notification::assertSentTo(
+            $customer,
+            BookingStatusUpdatedNotification::class,
+            fn ($notification) => $notification->booking->status === 'confirmed'
+        );
+    }
+
+    public function test_updating_a_booking_without_changing_status_does_not_notify(): void
+    {
+        ['booking' => $booking, 'admin' => $admin] = $this->makeBooking();
+        Notification::fake();
+
+        $this->actingAs($admin, 'api')->putJson("/api/bookings/{$booking['id']}", ['guests' => 2])->assertOk();
+
+        Notification::assertNothingSent();
     }
 }

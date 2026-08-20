@@ -370,6 +370,7 @@ function updateAuthUI() {
     document.querySelectorAll('.hide-for-admin').forEach((el) => el.classList.toggle('hidden', isAdmin));
     if (isAuth) document.getElementById('current-user-name').textContent = currentUser.name;
     refreshBookingsBadge();
+    refreshAdminBookingsBadge();
     // Auth state changes what's in the header (name length, which buttons
     // show), which can change how many rows it wraps to on narrow screens.
     requestAnimationFrame(syncHeaderHeightVar);
@@ -417,6 +418,48 @@ async function refreshBookingsBadge() {
 
 // Pick up admin-side status changes made in another tab while this one stays open.
 setInterval(() => { if (currentUser && currentUser.role !== 'admin') refreshBookingsBadge(); }, 20000);
+
+/* Mirror image of the badge above: a "pending" booking the admin hasn't
+ * opened All Bookings to see yet means a guest just booked and is waiting
+ * on a response. */
+
+function seenAdminBookingIdsKey() {
+    return `seen_admin_bookings_${currentUser?.id}`;
+}
+
+function getSeenAdminBookingIds() {
+    try {
+        return new Set(JSON.parse(localStorage.getItem(seenAdminBookingIdsKey())) || []);
+    } catch (e) {
+        return new Set();
+    }
+}
+
+function markAdminBookingsSeen(ids) {
+    localStorage.setItem(seenAdminBookingIdsKey(), JSON.stringify([...ids]));
+}
+
+async function refreshAdminBookingsBadge() {
+    const badges = document.querySelectorAll('.admin-bookings-badge');
+    if (!currentUser || currentUser.role !== 'admin') {
+        badges.forEach((b) => b.classList.add('hidden'));
+        return;
+    }
+    try {
+        const data = await apiFetch('/bookings?per_page=50');
+        const seen = getSeenAdminBookingIds();
+        const unseen = data.data.filter((b) => b.status === 'pending' && !seen.has(b.id));
+        badges.forEach((b) => {
+            b.textContent = String(unseen.length);
+            b.classList.toggle('hidden', unseen.length === 0);
+        });
+    } catch (e) {
+        // Badge is a nice-to-have; a failed background check shouldn't surface an error.
+    }
+}
+
+// Pick up new bookings made while the admin is on another tab/page.
+setInterval(() => { if (currentUser && currentUser.role === 'admin') refreshAdminBookingsBadge(); }, 20000);
 
 /* ============================== AUTH ============================== */
 
@@ -871,11 +914,30 @@ async function deleteRoom(id) {
 
 /* ============================== ADMIN: ALL BOOKINGS ============================== */
 
+// Populated by loadAdminBookings, read by markCurrentAdminBookingsSeen - the
+// tab click that should clear the badge doesn't itself have the latest
+// booking list, and loadAdminBookings runs eagerly whenever any part of
+// Admin opens (to prefetch for instant tab-switching), so it can't be the
+// one marking things seen: that would clear the badge the moment an admin
+// lands on Room Types, before they ever look at All Bookings.
+let lastLoadedBookings = [];
+
+function markCurrentAdminBookingsSeen() {
+    const pendingIds = lastLoadedBookings.filter((b) => b.status === 'pending').map((b) => b.id);
+    markAdminBookingsSeen(new Set([...getSeenAdminBookingIds(), ...pendingIds]));
+    document.querySelectorAll('.admin-bookings-badge').forEach((b) => b.classList.add('hidden'));
+}
+
 async function loadAdminBookings() {
     const tbody = document.getElementById('admin-bookings-body');
     tbody.innerHTML = '<tr><td colspan="6">Loading&hellip;</td></tr>';
     try {
         const data = await apiFetch('/bookings?per_page=50');
+        lastLoadedBookings = data.data;
+        if (document.querySelector('#view-admin .tab-btn[data-admin-tab="bookings"]').classList.contains('active')) {
+            markCurrentAdminBookingsSeen();
+        }
+
         tbody.innerHTML = data.data.map((b) => `
             <tr>
                 <td>
@@ -1214,6 +1276,7 @@ document.querySelectorAll('#view-admin .tab-btn[data-admin-tab]').forEach((btn) 
         document.querySelectorAll('#view-admin .tab-btn').forEach((b) => b.classList.toggle('active', b === btn));
         document.querySelectorAll('.admin-panel').forEach((p) => p.classList.remove('active'));
         document.getElementById(`admin-${btn.dataset.adminTab}`).classList.add('active');
+        if (btn.dataset.adminTab === 'bookings') markCurrentAdminBookingsSeen();
     });
 });
 

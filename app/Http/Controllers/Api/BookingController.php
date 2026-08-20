@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBookingRequest;
 use App\Models\Booking;
 use App\Models\Room;
+use App\Notifications\BookingStatusUpdatedNotification;
 use App\Notifications\NewBookingNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -122,7 +123,8 @@ class BookingController extends Controller
             unset($data['status']);
         }
 
-        if (isset($data['status']) && $data['status'] !== $booking->status) {
+        $statusChanged = isset($data['status']) && $data['status'] !== $booking->status;
+        if ($statusChanged) {
             $data['status_changed_by'] = $request->user()->id;
         }
 
@@ -137,8 +139,20 @@ class BookingController extends Controller
         }
 
         $booking->update($data);
+        $booking = $booking->fresh(['room.roomType', 'user:id,name,email', 'statusChangedBy:id,name,role']);
 
-        return response()->json($booking->fresh(['room.roomType', 'user:id,name,email', 'statusChangedBy:id,name,role']));
+        // The guest didn't make this change (only admins can), so this is
+        // the only way they find out - same failure handling as the
+        // booking-created email: never let a mail hiccup fail the request.
+        if ($statusChanged) {
+            try {
+                $booking->user->notify(new BookingStatusUpdatedNotification($booking));
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        return response()->json($booking);
     }
 
     public function destroy(Request $request, Booking $booking): JsonResponse

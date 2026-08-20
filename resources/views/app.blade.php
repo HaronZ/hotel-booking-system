@@ -25,7 +25,10 @@
                     My Bookings
                     <span class="nav-badge hidden" id="bookings-badge"></span>
                 </button>
-                <button class="nav-link admin-only hidden" data-nav="admin">Admin</button>
+                <button class="nav-link admin-only hidden" data-nav="admin">
+                    Admin
+                    <span class="nav-badge hidden admin-bookings-badge"></span>
+                </button>
             </nav>
 
             <div class="auth-area">
@@ -148,7 +151,10 @@
             <div class="tabs">
                 <button class="tab-btn active" data-admin-tab="room-types">Room Types</button>
                 <button class="tab-btn" data-admin-tab="rooms">Rooms</button>
-                <button class="tab-btn" data-admin-tab="bookings">All Bookings</button>
+                <button class="tab-btn" data-admin-tab="bookings">
+                    All Bookings
+                    <span class="nav-badge hidden admin-bookings-badge"></span>
+                </button>
             </div>
 
             <div id="admin-room-types" class="admin-panel active">
