@@ -947,7 +947,12 @@ async function loadAdminBookings() {
                     </div>
                 </td>
                 <td>${escapeHtml(b.room.room_number)}</td>
-                <td>${b.check_in.slice(0, 10)} &rarr; ${b.check_out.slice(0, 10)}</td>
+                <td>
+                    <div class="date-range">
+                        <span><span class="date-range-label">In</span> ${formatDateDisplay(b.check_in.slice(0, 10))}</span>
+                        <span><span class="date-range-label">Out</span> ${formatDateDisplay(b.check_out.slice(0, 10))}</span>
+                    </div>
+                </td>
                 <td>
                     ${isTerminalStatus(b.status)
                         ? `<span class="status-badge status-${b.status}">${b.status}</span>`
