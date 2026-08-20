@@ -34,9 +34,9 @@ A full-stack hotel room booking system built with Laravel: a JWT-secured REST AP
 | Frontend       | Vanilla HTML/CSS/JS served from a single Blade view — no npm build step |
 | Email          | Resend                                                                   |
 | AI             | OpenRouter (free-tier model), as a fallback behind rule-based matching  |
-| Target hosting | Hostinger (shared PHP/MySQL hosting)                                    |
+| Hosting        | [Render](https://render.com) (Docker), MySQL via Aiven                  |
 
-**Why no frontend framework?** The assessment's core stack is Laravel/PHP/MySQL — no JS framework is listed, and Hostinger's shared hosting has no Node build step. Plain HTML/CSS/JS served directly from Laravel deploys as the same single app, with nothing extra to compile.
+**Why no frontend framework?** The assessment's core stack is Laravel/PHP/MySQL — no JS framework is listed. Plain HTML/CSS/JS served directly from Laravel deploys as the same single app, with nothing extra to compile.
 
 ## Getting started
 
@@ -125,12 +125,14 @@ All endpoints are prefixed with `/api`. Protected routes require `Authorization:
 
 **Admin and customer are separate contexts**, not one nav with conditional links bolted on — an admin never sees "My Bookings" (they use Admin → All Bookings instead) and lands on the Admin panel by default, not the guest-facing browse page.
 
-## Deploying to Hostinger
+## Deploying to Render
 
-1. Set `APP_ENV=production`, `APP_DEBUG=false`.
-2. Point `DB_*` at Hostinger's MySQL credentials.
-3. Verify a sending domain in Resend and update `MAIL_FROM_ADDRESS` to use it.
-4. Run `php artisan migrate --force` and `php artisan config:cache`.
+The live demo runs from [`render.yaml`](render.yaml) — a Blueprint that builds the [`Dockerfile`](Dockerfile) and deploys on push to `main`.
+
+1. Create a Blueprint instance on Render from this repo; it reads `render.yaml` for the service config.
+2. Fill in the secrets Render won't infer (`sync: false` in the blueprint): `APP_KEY`, `DB_HOST`/`DB_PORT`/`DB_DATABASE`/`DB_USERNAME`/`DB_PASSWORD`, `JWT_SECRET`, `RESEND_API_KEY`, `OPENROUTER_API_KEY`.
+3. Verify a sending domain in Resend and set `MAIL_FROM_ADDRESS` to use it.
+4. Push to `main` — Render builds the Docker image; migrations and the (idempotent) seeders run automatically on every boot, so demo data is always present, even after a cold start on the free plan.
 
 ---
 
