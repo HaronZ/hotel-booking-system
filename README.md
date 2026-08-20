@@ -2,6 +2,9 @@
 
 A full-stack hotel room booking system built with Laravel: a JWT-secured REST API, an admin back office, and a plain HTML/CSS/JS frontend with no build step. Built as a technical assessment to demonstrate the CertiCode core stack (Laravel, REST, MySQL) plus a few enhancements on top.
 
+**🔗 Live demo:** [hotel-booking-api-9s54.onrender.com](https://hotel-booking-api-9s54.onrender.com/) — log in with the [demo accounts](#demo-accounts) below, or sign up.
+> Hosted on Render's free tier, so the first request after idling can take ~30-60s to wake up.
+
 ![Browse rooms — light mode](docs/screenshots/browse-light.png)
 
 ## Features
