@@ -128,19 +128,19 @@ class ChatbotService
     protected function bookingHelp(): array
     {
         return $this->respond(
-            "To make a reservation:\n".
-            "1. Register or log in to get an access token (POST /api/register or /api/login).\n".
-            "2. Search available rooms for your dates (GET /api/rooms?check_in=YYYY-MM-DD&check_out=YYYY-MM-DD).\n".
-            "3. Create the booking (POST /api/bookings) with the room_id, check_in, check_out, and guests.\n".
-            "You'll get an email confirmation once it's submitted."
+            "Booking is easy:\n".
+            "1. Pick your check-in and check-out dates and number of guests, then hit Search to see available rooms.\n".
+            "2. Log in or sign up if you haven't already — you'll need an account to reserve a room.\n".
+            "3. Click \"Book this room\" on the one you want and confirm your dates and guests.\n".
+            "You'll get an email confirming your reservation once it's submitted."
         );
     }
 
     protected function cancelHelp(): array
     {
         return $this->respond(
-            'To cancel a reservation, send DELETE /api/bookings/{id} with your access token. '.
-            'You can only cancel your own bookings unless you are an admin.'
+            "To cancel a reservation, go to \"My Bookings\" and cancel it from there. ".
+            "You can only cancel your own bookings unless you're an admin."
         );
     }
 
