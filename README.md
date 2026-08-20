@@ -73,6 +73,8 @@ Seeded automatically by `php artisan migrate --seed`:
 | Admin    | admin@hotel.test  | password |
 | Customer | guest@hotel.test  | password |
 
+> `.test` is a reserved, non-routable TLD, so these accounts can't actually receive email — booking/status emails to them fail silently (logged, not shown). To see the real email confirmation flow on the [live demo](#certicode-hotel--booking-api), sign up with your own email address instead.
+
 The seeder also creates 3 room types, 7 rooms, and 4 sample bookings — one in each status (pending/confirmed/cancelled/completed) — so every part of the UI has real data to show immediately.
 
 ### Optional: email and AI chatbot
