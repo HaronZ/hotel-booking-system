@@ -785,6 +785,17 @@ input[type="number"]::-webkit-inner-spin-button {
 .data-table .row-actions { display: flex; gap: 0.5rem; }
 
 .guest-cell { display: flex; align-items: center; gap: 0.6rem; }
+
+.date-range { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.85rem; }
+.date-range-label {
+    display: inline-block;
+    width: 1.6rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+}
 .avatar {
     display: inline-flex;
     align-items: center;
