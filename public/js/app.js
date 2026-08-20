@@ -959,7 +959,7 @@ async function loadAdminBookings() {
                         : `<select class="status-select status-${b.status}" data-booking-id="${b.id}">
                             ${['pending', 'confirmed', 'cancelled', 'completed'].map((s) => `<option value="${s}" ${s === b.status ? 'selected' : ''}>${s}</option>`).join('')}
                         </select>`}
-                    ${b.status_changed_by ? `<div class="status-changed-by">by ${b.status_changed_by.role === 'admin' ? 'admin' : 'guest'}</div>` : ''}
+                    ${b.status === 'cancelled' && b.status_changed_by ? `<div class="status-changed-by">by ${b.status_changed_by.role === 'admin' ? 'admin' : 'guest'}</div>` : ''}
                 </td>
                 <td>${formatMoney(b.total_price)}</td>
                 <td>${b.special_requests

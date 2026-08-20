@@ -14,6 +14,7 @@ A full-stack hotel room booking system built with Laravel: a JWT-secured REST AP
 - **Live availability search** — filter rooms by date range, guest count, and room type; a room only shows up if it has no overlapping booking for those dates
 - **Double-booking prevention** enforced at the model layer, not just the UI
 - **Booking status workflow** (pending → confirmed/cancelled/completed) with a notification badge that tells a guest when the hotel has updated their booking
+- **Bookings auto-complete** once their check-out date has passed, via a daily scheduled job — admins only ever intervene manually for edge cases (no-show, early departure)
 - **Email confirmations** on new reservations, sent via [Resend](https://resend.com)
 - **AI booking assistant** — a fast, free, deterministic keyword matcher handles common questions (prices, availability, how to book/cancel) by querying the database directly; anything else falls back to an LLM call (via [OpenRouter](https://openrouter.ai)), grounded with the real room data so it can't invent a room or price that doesn't exist
 - **Light/dark theme**, a custom date-range picker, and a fully responsive layout — no CSS framework, no JS framework, no build step
@@ -124,6 +125,8 @@ All endpoints are prefixed with `/api`. Protected routes require `Authorization:
 **The chatbot is two systems, not one.** `ChatbotService::reply()` tries keyword rules first — free, instant, and fully traceable to one line of code. Only when nothing matches does `askLlm()` call OpenRouter, and even then the prompt is grounded with the real room data and instructed never to invent a room, price, or policy. See [`app/Services/ChatbotService.php`](app/Services/ChatbotService.php).
 
 **Admin and customer are separate contexts**, not one nav with conditional links bolted on — an admin never sees "My Bookings" (they use Admin → All Bookings instead) and lands on the Admin panel by default, not the guest-facing browse page.
+
+**Auto-completing bookings** is a scheduled command, not a request-time check: [`bookings:complete-past`](app/Console/Commands/CompletePastBookings.php) runs daily (registered in [`bootstrap/app.php`](bootstrap/app.php)) and flips any `confirmed` booking whose `check_out` has passed to `completed`, notifying the guest the same way a manual status change does. Render's free plan doesn't provide a separate worker/cron service, so the [`Dockerfile`](Dockerfile) runs `schedule:work` in the background of the same container as `artisan serve`, instead of relying on real system cron.
 
 ## Deploying to Render
 
