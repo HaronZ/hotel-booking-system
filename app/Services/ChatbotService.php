@@ -34,6 +34,7 @@ class ChatbotService
             $this->matches($text, ['amenities', 'wifi', 'breakfast', 'facilit']) => $this->amenities(),
             $this->matches($text, ['cancel']) => $this->cancelHelp(),
             $this->matches($text, ['book', 'reservation', 'reserve']) => $this->bookingHelp(),
+            $this->containsDateRange($text) => $this->availability($text),
             default => $this->askLlm($message),
         };
     }
@@ -47,6 +48,20 @@ class ChatbotService
         }
 
         return false;
+    }
+
+    /**
+     * True when the message contains two ISO dates on its own, e.g. a
+     * reply of just "2026-09-01 to 2026-09-05" to the availability prompt.
+     * The chatbot has no conversation memory, so this is what lets that
+     * kind of follow-up still resolve to a real DB availability lookup
+     * instead of falling through to the LLM.
+     */
+    protected function containsDateRange(string $text): bool
+    {
+        preg_match_all('/\d{4}-\d{2}-\d{2}/', $text, $matches);
+
+        return count($matches[0] ?? []) >= 2;
     }
 
     protected function greeting(): array
