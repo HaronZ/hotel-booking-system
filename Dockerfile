@@ -20,7 +20,11 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction \
 # Render assigns the port to listen on via $PORT at runtime.
 # Migrations and the (idempotent) seeders run on every boot so the demo data
 # is always present, including after a cold start on the free plan.
+# There's no separate worker/cron service on the free plan, so the scheduler
+# (e.g. the daily bookings:complete-past job) runs in the background of this
+# same container via schedule:work instead of a real system cron.
 CMD php artisan config:cache \
     && php artisan migrate --force \
     && php artisan db:seed --force \
+    && (php artisan schedule:work &) \
     && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
